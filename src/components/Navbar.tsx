@@ -58,14 +58,14 @@ export default function Navbar() {
         {/* Desktop Auth Buttons */}
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
-            href="/login"
+            href="/signin"
             className="inline-flex items-center justify-center rounded-md border border-[#172554]/30 px-4 py-2 text-sm font-medium text-[#172554] transition hover:bg-[#F5EFE3]"
           >
             Sign In
           </Link>
 
           <Link
-            href="/register"
+            href="/signup"
             className="inline-flex h-10 items-center justify-center rounded-lg bg-[#172554] px-5 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#243B73] hover:shadow-md"
           >
             Sign Up
@@ -140,7 +140,7 @@ export default function Navbar() {
                 <div className="flex flex-col gap-3">
                   <SheetClose asChild>
                     <Link
-                      href="/login"
+                      href="/signin"
                       className="flex h-11 w-full items-center justify-center rounded-lg border border-[#172554]/30 font-semibold text-[#172554] transition hover:bg-[#172554] hover:text-white"
                     >
                       Sign In
@@ -149,7 +149,7 @@ export default function Navbar() {
 
                   <SheetClose asChild>
                     <Link
-                      href="/register"
+                      href="/signup"
                       className="flex h-11 w-full items-center justify-center rounded-lg bg-[#172554] font-semibold text-white transition hover:bg-[#243B73]"
                     >
                       Sign Up
