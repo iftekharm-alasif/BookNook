@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wanderlust Backend API
 
-## Getting Started
+A RESTful backend API for the Wanderlust travel application, built with **Node.js, Express.js, MongoDB, and JWT Authentication**.
 
-First, run the development server:
+## 🚀 Technologies Used
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js
+- Express.js
+- MongoDB
+- MongoDB Node.js Driver
+- Better Auth
+- JWT Authentication (`jose`)
+- CORS
+- dotenv
+
+## ✨ Features
+
+- Add new travel destinations
+- Retrieve all destinations
+- Retrieve featured destinations
+- Get destination details by ID
+- Update destination information
+- Delete destinations
+- Create travel bookings
+- Retrieve user-specific bookings
+- Delete bookings
+- JWT-based protected API routes
+
+## 📁 API Endpoints
+
+### Destination APIs
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| GET | `/destinations` | Public |
+| GET | `/featured-destinations` | Public |
+| POST | `/add-destination` | JWT Required |
+| GET | `/destination/:id` | JWT Required |
+| PATCH | `/destination/:id` | JWT Required |
+| DELETE | `/destination/:id` | JWT Required |
+
+### Booking APIs
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| POST | `/booking` | Public |
+| GET | `/my-bookings/:email` | JWT Required |
+| DELETE | `/my-bookings/:id` | Public |
+
+### Server API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | Check server status |
+
+## 🔐 JWT Authentication
+
+This project uses JWT authentication with Better Auth and the `jose` library.
+
+### How It Works
+
+1. The frontend obtains a JWT token from Better Auth.
+2. The frontend sends the token through the `Authorization` header.
+3. Express middleware extracts the token.
+4. `createRemoteJWKSet()` retrieves the public keys from Better Auth's JWKS endpoint.
+5. `jwtVerify()` verifies the token.
+6. If the token is valid, the request proceeds using `next()`.
+7. Otherwise, the request is rejected.
+
+### Authorization Header
+
+```http
+Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚙️ Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Clone the Repository
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone YOUR_BACKEND_REPOSITORY_URL
+```
 
-## Learn More
+### 2. Navigate to the Project Folder
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd your-project-folder
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Install Dependencies
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+```
 
-## Deploy on Vercel
+### 4. Configure Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Create a `.env` file in the project root:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+MONGODB_URI=your_mongodb_connection_string
+CLIENT_URL=your_frontend_url
+```
+
+### 5. Start the Development Server
+
+```bash
+npm start
+```
+
+The server runs locally at:
+
+```text
+http://localhost:8000
+```
+
+## 🗄️ Database Structure
+
+**Database:** `wanderlust`
+
+Collections:
+
+- `destination`
+- `bookings`
+
+## 📦 Deployment
+
+The backend can be deployed using platforms such as Vercel.
+
+Configure the required environment variables in the deployment platform before deploying.
+
+## 👨‍💻 Author
+
+**Iftekhar Mahamud Al Asif**
+
+## 📄 License
+
+This project is created for educational and development purposes.
