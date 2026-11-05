@@ -6,15 +6,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
-const SignUpPage = () => {
+export default function SignUpPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleEmailSignUp = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  // Normal Sign Up
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setLoading(true);
@@ -22,31 +22,40 @@ const SignUpPage = () => {
 
     const formData = new FormData(e.currentTarget);
 
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
     try {
       const { data, error } = await authClient.signUp.email({
-        name,
-        email,
-        password,
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
       });
 
       if (error) {
-        setErrorMessage(error.message || "Signup failed.");
+        setErrorMessage(error.message || "Signup failed!");
         return;
       }
 
-  if (data) {
-  router.push("/");
-  router.refresh();
-}
-    } catch (error) {
+      if (data) {
+        router.push("/");
+        router.refresh();
+      }
+    } catch {
       setErrorMessage("Something went wrong. Please try again.");
-      console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Google Sign Up
+  const handleGoogleSignUp = async () => {
+    setErrorMessage("");
+
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch {
+      setErrorMessage("Google sign up failed. Please try again.");
     }
   };
 
@@ -58,7 +67,6 @@ const SignUpPage = () => {
           <h1 className="text-3xl font-bold text-[#172554]">
             Book<span className="text-[#C5A46D]">Nook</span>
           </h1>
-
           <p className="mt-2 text-sm text-slate-500">
             Create your account and start exploring books.
           </p>
@@ -68,25 +76,22 @@ const SignUpPage = () => {
           <h2 className="text-2xl font-bold text-[#172554]">
             Create an Account
           </h2>
-
           <p className="mt-1 text-sm text-slate-500">
             Please fill in your details to sign up.
           </p>
         </div>
 
-        <form onSubmit={handleEmailSignUp} className="space-y-5">
-
+        <form onSubmit={handleSignUp} className="space-y-5">
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
               Full Name
             </label>
-
             <input
               type="text"
               name="name"
               placeholder="Enter your full name"
               required
-              className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 text-sm outline-none transition focus:border-[#C5A46D] focus:ring-2 focus:ring-[#C5A46D]/20"
+              className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 text-sm outline-none focus:border-[#C5A46D]"
             />
           </div>
 
@@ -94,13 +99,12 @@ const SignUpPage = () => {
             <label className="mb-2 block text-sm font-semibold text-slate-700">
               Email Address
             </label>
-
             <input
               type="email"
               name="email"
               placeholder="Enter your email"
               required
-              className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 text-sm outline-none transition focus:border-[#C5A46D] focus:ring-2 focus:ring-[#C5A46D]/20"
+              className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 text-sm outline-none focus:border-[#C5A46D]"
             />
           </div>
 
@@ -109,14 +113,24 @@ const SignUpPage = () => {
               Password
             </label>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Create a password"
-              required
-              minLength={8}
-              className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 text-sm outline-none transition focus:border-[#C5A46D] focus:ring-2 focus:ring-[#C5A46D]/20"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Create a password"
+                required
+                minLength={8}
+                className="w-full rounded-lg border border-[#E8E1D5] px-4 py-3 pr-16 text-sm outline-none focus:border-[#C5A46D]"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#172554]"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           {errorMessage && (
@@ -128,41 +142,33 @@ const SignUpPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[#172554] py-3 font-semibold text-white transition hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-[#172554] py-3 font-semibold text-white hover:bg-[#243B73] disabled:opacity-60"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        <div className="my-6 flex items-center gap-4">
-          <div className="h-px flex-1 bg-[#E8E1D5]" />
-          <span className="text-xs text-slate-400">
-            OR SIGN UP WITH
-          </span>
-          <div className="h-px flex-1 bg-[#E8E1D5]" />
-        </div>
+        
+<div className="my-6 flex items-center gap-4">
+  <div className="h-px flex-1 bg-[#E8E1D5]" />
+  <span className="text-xs text-slate-400">OR SIGN UP WITH</span>
+  <div className="h-px flex-1 bg-[#E8E1D5]" />
+</div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-lg border border-[#E8E1D5] py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#FAF7F0]"
-          >
-            Google
-          </button>
+<button
+  onClick={handleGoogleSignUp}
+  type="button"
+  className="w-full rounded-lg border border-[#E8E1D5] py-3 text-sm font-semibold text-slate-700 hover:bg-[#FAF7F0]"
+>
+  Google
+</button>
 
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-lg border border-[#E8E1D5] py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#FAF7F0]"
-          >
-            GitHub
-          </button>
-        </div>
 
         <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
           <Link
             href="/signin"
-            className="font-semibold text-[#172554] transition hover:text-[#C5A46D]"
+            className="font-semibold text-[#172554] hover:text-[#C5A46D]"
           >
             Sign In
           </Link>
@@ -171,6 +177,4 @@ const SignUpPage = () => {
       </div>
     </div>
   );
-};
-
-export default SignUpPage;
+}

@@ -107,7 +107,7 @@ export default function AllBooksPage() {
 
             <input
               type="text"
-              placeholder="Search by book title or author..."
+              placeholder="Search by book title .."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-[#E8E1D5] bg-[#FAF7F0] py-3 pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:border-[#C5A46D] focus:ring-2 focus:ring-[#C5A46D]/20"

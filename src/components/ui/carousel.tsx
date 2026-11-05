@@ -37,7 +37,7 @@ function useCarousel() {
   const context = React.useContext(CarouselContext);
 
   if (!context) {
-    throw new Error("useCarousel must be used within a <Carousel />");
+    throw new Error("useCarousel must be used within a Carousel");
   }
 
   return context;
@@ -63,13 +63,6 @@ function Carousel({
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) return;
-
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
-  }, []);
-
   const scrollPrev = React.useCallback(() => {
     api?.scrollPrev();
   }, [api]);
@@ -83,7 +76,9 @@ function Carousel({
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         scrollPrev();
-      } else if (event.key === "ArrowRight") {
+      }
+
+      if (event.key === "ArrowRight") {
         event.preventDefault();
         scrollNext();
       }
@@ -92,23 +87,29 @@ function Carousel({
   );
 
   React.useEffect(() => {
-    if (!api || !setApi) return;
-    setApi(api);
-  }, [api, setApi]);
-
-  React.useEffect(() => {
     if (!api) return;
 
-    onSelect(api);
+    const updateButtons = () => {
+      setCanScrollPrev(api.canScrollPrev());
+      setCanScrollNext(api.canScrollNext());
+    };
 
-    api.on("select", onSelect);
-    api.on("reInit", onSelect);
+    updateButtons();
+
+    api.on("select", updateButtons);
+    api.on("reInit", updateButtons);
 
     return () => {
-      api.off("select", onSelect);
-      api.off("reInit", onSelect);
+      api.off("select", updateButtons);
+      api.off("reInit", updateButtons);
     };
-  }, [api, onSelect]);
+  }, [api]);
+
+  React.useEffect(() => {
+    if (api && setApi) {
+      setApi(api);
+    }
+  }, [api, setApi]);
 
   return (
     <CarouselContext.Provider

@@ -21,48 +21,56 @@ export default function MyBorrowsPage() {
   const { data: session, isPending } = authClient.useSession();
 
   const [books, setBooks] = useState<BorrowedBook[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [returningId, setReturningId] = useState("");
 
-  // Login করা user-এর email দিয়ে books load হবে
+  const email = session?.user?.email;
+
   useEffect(() => {
-    const email = session?.user?.email;
+    if (isPending || !email) return;
 
-    if (isPending) return;
+    const loadBooks = async () => {
+      setLoading(true);
 
-    if (!email) {
-      setLoading(false);
-      return;
-    }
+      try {
+        const res = await fetch(
+          `http://localhost:8000/my-borrows?email=${encodeURIComponent(email)}`
+        );
 
-    fetch(
-      `http://localhost:8000/my-borrows?email=${encodeURIComponent(email)}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setBooks(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => {
+        if (!res.ok) {
+          throw new Error("Failed to load borrowed books");
+        }
+
+        const data = await res.json();
+        setBooks(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.log("Load Books Error:", error);
+      } finally {
         setLoading(false);
-      });
-  }, [session, isPending]);
+      }
+    };
 
-  // Book Return
+    loadBooks();
+  }, [email, isPending]);
+
   const handleReturn = async (id: string) => {
     const confirmReturn = window.confirm("Return this book?");
 
     if (!confirmReturn) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/return/${id}`, {
-        method: "PATCH",
-      });
+      setReturningId(id);
+
+      const res = await fetch(
+        `http://localhost:8000/return/${id}`,
+        {
+          method: "PATCH",
+        }
+      );
 
       const data = await res.json();
 
-      alert(data.message);
+      alert(data.message || "Return request completed.");
 
       if (res.ok) {
         setBooks((previousBooks) =>
@@ -74,7 +82,10 @@ export default function MyBorrowsPage() {
         );
       }
     } catch (error) {
+      console.log("Return Error:", error);
       alert("Something went wrong!");
+    } finally {
+      setReturningId("");
     }
   };
 
@@ -87,10 +98,11 @@ export default function MyBorrowsPage() {
   );
 
   const formatDate = (date: string) => {
+    if (!date) return "Not available";
+
     return new Date(date).toLocaleDateString("en-GB");
   };
 
-  // Book Card
   const bookCard = (book: BorrowedBook) => (
     <div
       key={book._id}
@@ -156,9 +168,10 @@ export default function MyBorrowsPage() {
           {book.status === "Borrowed" ? (
             <button
               onClick={() => handleReturn(book._id)}
-              className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243B73]"
+              disabled={returningId === book._id}
+              className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Return Book
+              {returningId === book._id ? "Returning..." : "Return Book"}
             </button>
           ) : (
             <span className="rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700">
@@ -170,7 +183,6 @@ export default function MyBorrowsPage() {
     </div>
   );
 
-  // Loading
   if (isPending || loading) {
     return (
       <div className="min-h-screen bg-[#FAF7F0] py-20 text-center">
@@ -179,7 +191,6 @@ export default function MyBorrowsPage() {
     );
   }
 
-  // Login না থাকলে
   if (!session?.user) {
     return (
       <div className="min-h-screen bg-[#FAF7F0] px-4 py-20 text-center">
@@ -188,7 +199,7 @@ export default function MyBorrowsPage() {
         </h2>
 
         <Link
-          href="/sign-in"
+          href="/signin"
           className="mt-5 inline-block rounded-xl bg-[#172554] px-6 py-3 text-white"
         >
           Login
@@ -200,7 +211,6 @@ export default function MyBorrowsPage() {
   return (
     <main className="min-h-screen bg-[#FAF7F0] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-
         <div className="mb-10">
           <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#C5A46D]">
             Your Reading Activity
@@ -215,7 +225,6 @@ export default function MyBorrowsPage() {
           </p>
         </div>
 
-        {/* Statistics */}
         <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6">
             <p className="text-sm text-slate-500">Total Borrowed</p>
@@ -239,7 +248,6 @@ export default function MyBorrowsPage() {
           </div>
         </div>
 
-        {/* Currently Borrowed */}
         <section className="mb-14">
           <h2 className="mb-6 text-2xl font-bold text-[#172554]">
             Currently Borrowed ({activeBooks.length})
@@ -256,7 +264,6 @@ export default function MyBorrowsPage() {
           )}
         </section>
 
-        {/* Returned Books */}
         <section>
           <h2 className="mb-6 text-2xl font-bold text-[#172554]">
             Returned Books ({returnedBooks.length})
@@ -281,7 +288,6 @@ export default function MyBorrowsPage() {
             Browse More Books →
           </Link>
         </div>
-
       </div>
     </main>
   );
