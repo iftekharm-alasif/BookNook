@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const initialForm = {
   title: "",
@@ -29,21 +30,34 @@ const categories = [
 ];
 
 export default function AddBookPage() {
+  const { data: session, isPending } = authClient.useSession();
+
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Login করা user-এর name এবং email বসানো
+  useEffect(() => {
+    if (session?.user) {
+      setForm((prev) => ({
+        ...prev,
+        username: session.user.name || "",
+        email: session.user.email || "",
+      }));
+    }
+  }, [session]);
+
+  // Input change
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
+  // Submit book
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -70,13 +84,15 @@ export default function AddBookPage() {
       }
 
       setMessage("Book added successfully!");
-      setForm(initialForm);
 
+      setForm((prev) => ({
+        ...initialForm,
+        username: prev.username,
+        email: prev.email,
+      }));
     } catch (error) {
       setMessage(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong!"
+        error instanceof Error ? error.message : "Something went wrong!"
       );
     } finally {
       setLoading(false);
@@ -85,6 +101,26 @@ export default function AddBookPage() {
 
   const inputClass =
     "w-full rounded-lg border border-[#E8E1D5] bg-white px-4 py-3 text-slate-700 outline-none focus:border-[#C5A46D]";
+
+  // Session loading
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] py-20 text-center">
+        Loading...
+      </div>
+    );
+  }
+
+  // Login না থাকলে
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] py-20 text-center">
+        <p className="text-xl font-bold text-[#172554]">
+          Please Login First
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] px-4 py-12">
@@ -169,14 +205,9 @@ export default function AddBookPage() {
               onChange={handleChange}
               min="1"
               step="1"
-              placeholder="Enter total copies"
               className={inputClass}
               required
             />
-
-            <p className="mt-2 text-xs text-slate-500">
-              How many copies of this book are available for borrowing?
-            </p>
           </div>
 
           {/* Image */}
@@ -184,6 +215,7 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Book Image URL
             </label>
+
             <input
               type="url"
               name="image"
@@ -199,6 +231,7 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Description *
             </label>
+
             <textarea
               name="description"
               value={form.description}
@@ -210,35 +243,31 @@ export default function AddBookPage() {
             />
           </div>
 
-          {/* Username */}
+          {/* Username - Automatic */}
           <div>
             <label className="mb-2 block font-medium text-slate-700">
-              Your Name *
+              Your Name
             </label>
+
             <input
               type="text"
-              name="username"
               value={form.username}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              className={inputClass}
-              required
+              readOnly
+              className={`${inputClass} cursor-not-allowed bg-gray-100`}
             />
           </div>
 
-          {/* Email */}
+          {/* Email - Automatic */}
           <div>
             <label className="mb-2 block font-medium text-slate-700">
-              Your Email *
+              Your Email
             </label>
+
             <input
               type="email"
-              name="email"
               value={form.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              className={inputClass}
-              required
+              readOnly
+              className={`${inputClass} cursor-not-allowed bg-gray-100`}
             />
           </div>
 
@@ -252,7 +281,7 @@ export default function AddBookPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !form.username || !form.email}
             className="w-full rounded-lg bg-[#172554] px-6 py-3 font-semibold text-white transition hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Adding Book..." : "Add Book"}
