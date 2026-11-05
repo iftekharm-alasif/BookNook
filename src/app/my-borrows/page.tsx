@@ -33,16 +33,27 @@ export default function MyBorrowsPage() {
       setLoading(true);
 
       try {
+        const { data, error } = await authClient.token();
+
+        if (error || !data?.token) {
+          throw new Error("Authentication failed! Please login again.");
+        }
+
         const res = await fetch(
-          `https://book-nook-server-rosy.vercel.app/my-borrows?email=${encodeURIComponent(email)}`
+          "http://localhost:8000/my-borrows",
+          {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
+          }
         );
 
         if (!res.ok) {
           throw new Error("Failed to load borrowed books");
         }
 
-        const data = await res.json();
-        setBooks(Array.isArray(data) ? data : []);
+        const result = await res.json();
+        setBooks(Array.isArray(result) ? result : []);
       } catch (error) {
         console.log("Load Books Error:", error);
       } finally {
@@ -61,29 +72,45 @@ export default function MyBorrowsPage() {
     try {
       setReturningId(id);
 
+      const { data, error } = await authClient.token();
+
+      if (error || !data?.token) {
+        throw new Error("Authentication failed! Please login again.");
+      }
+
       const res = await fetch(
-        `https://book-nook-server-rosy.vercel.app/return/${id}`,
+        `http://localhost:8000/return/${id}`,
         {
           method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${data.token}`,
+          },
         }
       );
 
-      const data = await res.json();
+      const result = await res.json();
 
-      alert(data.message || "Return request completed.");
-
-      if (res.ok) {
-        setBooks((previousBooks) =>
-          previousBooks.map((book) =>
-            book._id === id
-              ? { ...book, status: "Returned" }
-              : book
-          )
-        );
+      if (!res.ok) {
+        throw new Error(result.message || "Return failed!");
       }
+
+      setBooks((previousBooks) =>
+        previousBooks.map((book) =>
+          book._id === id
+            ? { ...book, status: "Returned" }
+            : book
+        )
+      );
+
+      alert(result.message || "Book returned successfully!");
     } catch (error) {
       console.log("Return Error:", error);
-      alert("Something went wrong!");
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong!"
+      );
     } finally {
       setReturningId("");
     }
@@ -171,7 +198,9 @@ export default function MyBorrowsPage() {
               disabled={returningId === book._id}
               className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {returningId === book._id ? "Returning..." : "Return Book"}
+              {returningId === book._id
+                ? "Returning..."
+                : "Return Book"}
             </button>
           ) : (
             <span className="rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700">

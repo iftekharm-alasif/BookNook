@@ -49,9 +49,13 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   useEffect(() => {
     if (isPending || !email || !id) return;
 
+    let active = true;
+
     const fetchBook = async () => {
       try {
-        const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`);
+        const res = await fetch(
+          `https://book-nook-server-rosy.vercel.app/books/${id}`
+        );
 
         if (!res.ok) {
           throw new Error("Book not found");
@@ -92,7 +96,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       }
     };
 
-    let active = true;
     fetchBook();
 
     return () => {
@@ -140,23 +143,32 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     try {
       setUpdating(true);
 
-      const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...form,
-          email,
-          totalCopies,
-          availableCopies,
-        }),
-      });
+      const { data, error } = await authClient.token();
 
-      const data = await res.json();
+      if (error || !data?.token) {
+        throw new Error("Authentication failed! Please login again.");
+      }
+
+      const res = await fetch(
+        `https://book-nook-server-rosy.vercel.app/books/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
+          },
+          body: JSON.stringify({
+            ...form,
+            totalCopies,
+            availableCopies,
+          }),
+        }
+      );
+
+      const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Update failed");
+        throw new Error(result.message || "Update failed");
       }
 
       alert("Book updated successfully!");

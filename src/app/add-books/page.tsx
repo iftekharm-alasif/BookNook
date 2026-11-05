@@ -37,7 +37,6 @@ export default function AddBookPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Handle input changes
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -49,7 +48,6 @@ export default function AddBookPage() {
     }));
   };
 
-  // Add book
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -63,26 +61,34 @@ export default function AddBookPage() {
     }
 
     try {
+      const { data, error } = await authClient.token();
+
+      if (error || !data?.token) {
+        throw new Error("Authentication failed! Please login again.");
+      }
+
       const bookData = {
         ...form,
-        username,
-        email,
         totalCopies: Number(form.totalCopies),
         availableCopies: Number(form.availableCopies),
       };
 
-      const res = await fetch("https://book-nook-server-rosy.vercel.app/books", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bookData),
-      });
+      const res = await fetch(
+        "https://book-nook-server-rosy.vercel.app/books",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
+          },
+          body: JSON.stringify(bookData),
+        }
+      );
 
-      const data = await res.json();
+      const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to add book!");
+        throw new Error(result.message || "Failed to add book!");
       }
 
       setMessage("Book added successfully!");
@@ -146,7 +152,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Book Title *
             </label>
-
             <input
               type="text"
               name="title"
@@ -162,7 +167,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Author Name *
             </label>
-
             <input
               type="text"
               name="author"
@@ -178,7 +182,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Category *
             </label>
-
             <select
               name="category"
               value={form.category}
@@ -187,7 +190,6 @@ export default function AddBookPage() {
               required
             >
               <option value="">Select a category</option>
-
               {categories.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -200,7 +202,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Total Copies *
             </label>
-
             <input
               type="number"
               name="totalCopies"
@@ -217,7 +218,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Available Copies *
             </label>
-
             <input
               type="number"
               name="availableCopies"
@@ -235,7 +235,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Book Image URL
             </label>
-
             <input
               type="url"
               name="image"
@@ -250,7 +249,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Description *
             </label>
-
             <textarea
               name="description"
               value={form.description}
@@ -266,7 +264,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Your Name
             </label>
-
             <input
               type="text"
               value={username}
@@ -279,7 +276,6 @@ export default function AddBookPage() {
             <label className="mb-2 block font-medium text-slate-700">
               Your Email
             </label>
-
             <input
               type="email"
               value={email}

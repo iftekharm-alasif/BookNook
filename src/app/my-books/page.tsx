@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -35,9 +34,12 @@ export default function MyBooksPage() {
       setLoading(true);
 
       try {
-        const res = await fetch("https://book-nook-server-rosy.vercel.app/allbooks", {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          "https://book-nook-server-rosy.vercel.app/allbooks",
+          {
+            cache: "no-store",
+          },
+        );
 
         if (!res.ok) {
           throw new Error("Failed to fetch books");
@@ -46,7 +48,7 @@ export default function MyBooksPage() {
         const data: Book[] = await res.json();
 
         const filteredBooks = data.filter(
-          (book) => book.email?.trim().toLowerCase() === email
+          (book) => book.email?.trim().toLowerCase() === email,
         );
 
         setBooks(filteredBooks);
@@ -62,7 +64,7 @@ export default function MyBooksPage() {
 
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this book?"
+      "Are you sure you want to delete this book?",
     );
 
     if (!confirmDelete) return;
@@ -70,25 +72,37 @@ export default function MyBooksPage() {
     try {
       setDeletingId(id);
 
-      const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`, {
-        method: "DELETE",
-      });
+      const { data, error } = await authClient.token();
 
-      const data = await res.json();
+      if (error || !data?.token) {
+        throw new Error("Authentication failed! Please login again.");
+      }
+
+      const res = await fetch(
+        `https://book-nook-server-rosy.vercel.app/books/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${data.token}`,
+          },
+        },
+      );
+
+      const result = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to delete book");
-        return;
+        throw new Error(result.message || "Failed to delete book");
       }
 
       setBooks((previousBooks) =>
-        previousBooks.filter((book) => book._id !== id)
+        previousBooks.filter((book) => book._id !== id),
       );
 
       alert("Book deleted successfully!");
     } catch (error) {
       console.error("Delete Error:", error);
-      alert("Something went wrong!");
+
+      alert(error instanceof Error ? error.message : "Something went wrong!");
     } finally {
       setDeletingId(null);
     }
@@ -159,8 +173,8 @@ export default function MyBooksPage() {
             </h2>
 
             <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">
-              You haven`t added any books yet. Start building your collection
-              by adding your first book.
+              You haven`t added any books yet. Start building your collection by
+              adding your first book.
             </p>
 
             <Link
