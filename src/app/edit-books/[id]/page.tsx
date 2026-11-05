@@ -3,19 +3,19 @@
 
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
-export default function EditBookPage() {
-  const params = useParams();
-  const router = useRouter();
+interface EditBookPageProps {
+  params: Promise<{ id: string }>;
+}
 
+export default function EditBookPage({ params }: EditBookPageProps) {
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-  const id = params.id as string;
-  const email = session?.user?.email;
-
+  const [id, setId] = useState("");
   const [bookLoading, setBookLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
@@ -30,9 +30,24 @@ export default function EditBookPage() {
     description: "",
   });
 
-  // Load book information
+  const email = session?.user?.email;
+
   useEffect(() => {
-    if (isPending || !email) return;
+    let active = true;
+
+    params.then((resolvedParams) => {
+      if (active) {
+        setId(resolvedParams.id);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [params]);
+
+  useEffect(() => {
+    if (isPending || !email || !id) return;
 
     const fetchBook = async () => {
       try {
@@ -44,7 +59,8 @@ export default function EditBookPage() {
 
         const book = await res.json();
 
-        // Check book ownership
+        if (!active) return;
+
         if (
           book.email?.trim().toLowerCase() !==
           email.trim().toLowerCase()
@@ -65,16 +81,25 @@ export default function EditBookPage() {
         });
       } catch (error) {
         console.error(error);
-        setError("Failed to load book information.");
+
+        if (active) {
+          setError("Failed to load book information.");
+        }
       } finally {
-        setBookLoading(false);
+        if (active) {
+          setBookLoading(false);
+        }
       }
     };
 
+    let active = true;
     fetchBook();
+
+    return () => {
+      active = false;
+    };
   }, [id, email, isPending, router]);
 
-  // Handle input changes
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -86,7 +111,6 @@ export default function EditBookPage() {
     }));
   };
 
-  // Update book information
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -95,16 +119,21 @@ export default function EditBookPage() {
       return;
     }
 
-    if (Number(form.availableCopies) > Number(form.totalCopies)) {
-      alert("Available Copies cannot be greater than Total Copies!");
+    const totalCopies = Number(form.totalCopies);
+    const availableCopies = Number(form.availableCopies);
+
+    if (
+      !Number.isInteger(totalCopies) ||
+      !Number.isInteger(availableCopies) ||
+      totalCopies < 0 ||
+      availableCopies < 0
+    ) {
+      alert("Please enter valid copy numbers!");
       return;
     }
 
-    if (
-      Number(form.totalCopies) < 0 ||
-      Number(form.availableCopies) < 0
-    ) {
-      alert("Copies cannot be negative!");
+    if (availableCopies > totalCopies) {
+      alert("Available Copies cannot be greater than Total Copies!");
       return;
     }
 
@@ -119,8 +148,8 @@ export default function EditBookPage() {
         body: JSON.stringify({
           ...form,
           email,
-          totalCopies: Number(form.totalCopies),
-          availableCopies: Number(form.availableCopies),
+          totalCopies,
+          availableCopies,
         }),
       });
 
@@ -149,7 +178,7 @@ export default function EditBookPage() {
   const inputClass =
     "w-full rounded-xl border border-[#E8E1D5] bg-white px-4 py-3 text-sm outline-none focus:border-[#C5A46D]";
 
-  if (isPending) {
+  if (isPending || !id) {
     return (
       <main className="min-h-screen bg-[#FAF7F0] p-10 text-center text-slate-500">
         Loading...
@@ -217,7 +246,6 @@ export default function EditBookPage() {
             <label className="mb-2 block text-sm font-semibold text-[#172554]">
               Book Title
             </label>
-
             <input
               name="title"
               value={form.title}
@@ -231,7 +259,6 @@ export default function EditBookPage() {
             <label className="mb-2 block text-sm font-semibold text-[#172554]">
               Author
             </label>
-
             <input
               name="author"
               value={form.author}
@@ -245,7 +272,6 @@ export default function EditBookPage() {
             <label className="mb-2 block text-sm font-semibold text-[#172554]">
               Category
             </label>
-
             <input
               name="category"
               value={form.category}
@@ -260,7 +286,6 @@ export default function EditBookPage() {
               <label className="mb-2 block text-sm font-semibold text-[#172554]">
                 Total Copies
               </label>
-
               <input
                 type="number"
                 name="totalCopies"
@@ -277,7 +302,6 @@ export default function EditBookPage() {
               <label className="mb-2 block text-sm font-semibold text-[#172554]">
                 Available Copies
               </label>
-
               <input
                 type="number"
                 name="availableCopies"
@@ -295,7 +319,6 @@ export default function EditBookPage() {
             <label className="mb-2 block text-sm font-semibold text-[#172554]">
               Image URL
             </label>
-
             <input
               type="url"
               name="image"
@@ -310,7 +333,6 @@ export default function EditBookPage() {
             <label className="mb-2 block text-sm font-semibold text-[#172554]">
               Description
             </label>
-
             <textarea
               name="description"
               value={form.description}
