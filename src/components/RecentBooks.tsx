@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,6 +10,8 @@ type Book = {
   category: string;
   image: string;
   description: string;
+  totalCopies: number;
+  availableCopies: number;
 };
 
 export default function RecentBooks() {
@@ -20,8 +21,10 @@ export default function RecentBooks() {
   useEffect(() => {
     const fetchRecentBooks = async () => {
       try {
-        const res = await fetch("http://localhost:8000/recentbooks");
-         cache: "no-store"
+        const res = await fetch("http://localhost:8000/recentbooks", {
+          cache: "no-store",
+        });
+
         if (!res.ok) {
           throw new Error("Failed to fetch recent books");
         }
@@ -41,7 +44,6 @@ export default function RecentBooks() {
   return (
     <section className="bg-[#FAF7F0] px-4 py-16 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
-
         {/* Section Heading */}
         <div className="mb-10 text-center">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-[#C5A46D]">
@@ -69,7 +71,7 @@ export default function RecentBooks() {
             No books have been added yet.
           </p>
         ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {books.map((book) => (
               <div
                 key={book._id}
@@ -97,6 +99,30 @@ export default function RecentBooks() {
                   <p className="mt-2 line-clamp-1 text-sm text-slate-500">
                     By {book.author}
                   </p>
+
+                  {/* Book Copies */}
+                  <div className="mt-4 flex justify-between border-t border-[#E8E1D5] pt-3">
+                    <p className="text-xs text-slate-500">
+                      Total:{" "}
+                      <span className="font-semibold text-[#172554]">
+                        {book.totalCopies}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500">
+                      Available:{" "}
+                      <span className="font-semibold text-green-700">
+                        {book.availableCopies}
+                      </span>
+                    </p>
+                  </div>
+                  {/* View Book Details Button */}
+                  <Link
+                    href={`/books-details/${book._id}`}
+                    className="mt-4 block w-full rounded-lg bg-[#172554] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#243B73]"
+                  >
+                    View Book Details →
+                  </Link>
                 </div>
               </div>
             ))}

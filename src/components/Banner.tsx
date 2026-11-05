@@ -174,11 +174,11 @@ export default function Banner() {
                     </p>
 
                     <Link
-                      href={`/books?category=${item.category}`}
+                      href={`/all-books`}
                       tabIndex={currentIndex === index ? 0 : -1}
                       className="mt-7 inline-flex items-center gap-3 rounded-lg bg-[#FAF7F0] px-6 py-3 text-sm font-semibold text-[#172554] shadow-md transition-all duration-300 hover:bg-[#C5A46D] hover:text-white"
                     >
-                      Browse Books
+                      Browse All Books
                       <span aria-hidden="true">→</span>
                     </Link>
                   </div>
