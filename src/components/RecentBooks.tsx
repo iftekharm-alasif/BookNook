@@ -21,7 +21,7 @@ export default function RecentBooks() {
   useEffect(() => {
     const fetchRecentBooks = async () => {
       try {
-        const res = await fetch("http://localhost:8000/recentbooks", {
+        const res = await fetch("https://book-nook-server-rosy.vercel.app/recentbooks", {
           cache: "no-store",
         });
 

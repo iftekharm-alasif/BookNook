@@ -51,7 +51,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
     const fetchBook = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/books/${id}`);
+        const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`);
 
         if (!res.ok) {
           throw new Error("Book not found");
@@ -140,7 +140,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     try {
       setUpdating(true);
 
-      const res = await fetch(`http://localhost:8000/books/${id}`, {
+      const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -31,7 +31,7 @@ export default function AllBooksPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("http://localhost:8000/allbooks", {
+        const res = await fetch("https://book-nook-server-rosy.vercel.app/allbooks", {
           cache: "no-store",
         });
 

@@ -1,9 +1,10 @@
-export const instant = false;
 
+export const instant = false;
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import BorrowButton from "@/components/BorrowButton";
+
 interface Book {
   _id: string;
   title: string;
@@ -22,17 +23,18 @@ interface PageProps {
     id: string;
   }>;
 }
+
+const API_URL = "https://book-nook-server-rosy.vercel.app";
+
 export default async function BookDetailsPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: PageProps) {
   const { id } = await params;
 
   let book: Book;
 
   try {
-    const res = await fetch(`http://localhost:8000/books/${id}`, {
+    const res = await fetch(`${API_URL}/books/${id}`, {
       cache: "no-store",
     });
 
@@ -41,7 +43,7 @@ export default async function BookDetailsPage({
     }
 
     if (!res.ok) {
-      throw new Error("Failed to fetch book details");
+      throw new Error(`API Error: ${res.status}`);
     }
 
     book = await res.json();
@@ -55,9 +57,7 @@ export default async function BookDetailsPage({
   return (
     <main className="min-h-screen bg-[#FAF7F0] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        {/* Details Card */}
         <div className="grid overflow-hidden rounded-3xl border border-[#E8E1D5] bg-white shadow-sm md:grid-cols-2">
-          {/* Book Image */}
           <div className="relative flex min-h-[350px] items-center justify-center bg-[#F5EFE3] p-8 sm:min-h-[500px]">
             {book.image ? (
               <div className="relative h-[350px] w-full sm:h-[420px]">
@@ -76,7 +76,6 @@ export default async function BookDetailsPage({
             )}
           </div>
 
-          {/* Book Information */}
           <div className="flex flex-col justify-center p-6 sm:p-10">
             <span className="mb-5 w-fit rounded-full bg-[#F5EFE3] px-4 py-2 text-xs font-semibold text-[#172554]">
               {book.category}
@@ -93,7 +92,6 @@ export default async function BookDetailsPage({
               </span>
             </p>
 
-            {/* Description */}
             <div className="mt-8 border-t border-[#E8E1D5] pt-6">
               <h2 className="text-lg font-bold text-[#172554]">
                 About This Book
@@ -104,22 +102,25 @@ export default async function BookDetailsPage({
               </p>
             </div>
 
-            {/* Copies Information */}
             <div className="mt-8 grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">Total Copies</p>
-
+                <p className="text-sm text-slate-500">
+                  Total Copies
+                </p>
                 <p className="mt-2 text-2xl font-bold text-[#172554]">
                   {book.totalCopies ?? 0}
                 </p>
               </div>
 
               <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">Available Copies</p>
-
+                <p className="text-sm text-slate-500">
+                  Available Copies
+                </p>
                 <p
                   className={`mt-2 text-2xl font-bold ${
-                    availableCopies > 0 ? "text-green-700" : "text-red-600"
+                    availableCopies > 0
+                      ? "text-green-700"
+                      : "text-red-600"
                   }`}
                 >
                   {availableCopies}
@@ -127,7 +128,6 @@ export default async function BookDetailsPage({
               </div>
             </div>
 
-            {/* Availability */}
             <div className="mt-6">
               {availableCopies > 0 ? (
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-green-700">
@@ -142,23 +142,19 @@ export default async function BookDetailsPage({
               )}
             </div>
 
-            {/* Added By */}
-              {/* Action Buttons */}
-<div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <BorrowButton
+                bookId={book._id}
+                availableCopies={availableCopies}
+              />
 
-  <BorrowButton
-    bookId={book._id}
-    availableCopies={availableCopies}
-  />
-
-  <Link
-    href="/all-books"
-    className="flex-1 rounded-xl border border-[#E8E1D5] px-6 py-3.5 text-center text-sm font-semibold text-[#172554] transition hover:bg-[#F5EFE3]"
-  >
-    ← Back to All Books
-  </Link>
-
-</div>
+              <Link
+                href="/all-books"
+                className="flex-1 rounded-xl border border-[#E8E1D5] px-6 py-3.5 text-center text-sm font-semibold text-[#172554] transition hover:bg-[#F5EFE3]"
+              >
+                ← Back to All Books
+              </Link>
+            </div>
           </div>
         </div>
       </div>

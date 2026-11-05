@@ -35,7 +35,7 @@ export default function MyBooksPage() {
       setLoading(true);
 
       try {
-        const res = await fetch("http://localhost:8000/allbooks", {
+        const res = await fetch("https://book-nook-server-rosy.vercel.app/allbooks", {
           cache: "no-store",
         });
 
@@ -70,7 +70,7 @@ export default function MyBooksPage() {
     try {
       setDeletingId(id);
 
-      const res = await fetch(`http://localhost:8000/books/${id}`, {
+      const res = await fetch(`https://book-nook-server-rosy.vercel.app/books/${id}`, {
         method: "DELETE",
       });
 

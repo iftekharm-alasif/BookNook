@@ -34,7 +34,7 @@ export default function MyBorrowsPage() {
 
       try {
         const res = await fetch(
-          `http://localhost:8000/my-borrows?email=${encodeURIComponent(email)}`
+          `https://book-nook-server-rosy.vercel.app/my-borrows?email=${encodeURIComponent(email)}`
         );
 
         if (!res.ok) {
@@ -62,7 +62,7 @@ export default function MyBorrowsPage() {
       setReturningId(id);
 
       const res = await fetch(
-        `http://localhost:8000/return/${id}`,
+        `https://book-nook-server-rosy.vercel.app/return/${id}`,
         {
           method: "PATCH",
         }

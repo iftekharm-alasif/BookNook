@@ -35,7 +35,7 @@ if (!email) {
         setLoading(true);
 
         const res = await fetch(
-          `http://localhost:8000/my-borrows?email=${encodeURIComponent(email)}`
+          `https://book-nook-server-rosy.vercel.app/my-borrows?email=${encodeURIComponent(email)}`
         );
 
         if (!res.ok) {
@@ -79,7 +79,7 @@ if (!email) {
       setBorrowing(true);
 
       const res = await fetch(
-        `http://localhost:8000/borrow/${bookId}`,
+        `https://book-nook-server-rosy.vercel.app/borrow/${bookId}`,
         {
           method: "POST",
           headers: {

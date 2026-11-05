@@ -71,7 +71,7 @@ export default function AddBookPage() {
         availableCopies: Number(form.availableCopies),
       };
 
-      const res = await fetch("http://localhost:8000/books", {
+      const res = await fetch("https://book-nook-server-rosy.vercel.app/books", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
