@@ -54,42 +54,51 @@ const MyBorrowsPage = () => {
   const [loading, setLoading] = useState(true);
 
   // Load saved borrow data from localStorage
-  useEffect(() => {
-    try {
-      const savedBooks = localStorage.getItem("myBorrowedBooks");
-
-      if (savedBooks) {
-        setBorrowedBooks(JSON.parse(savedBooks));
-      } else {
-        setBorrowedBooks(demoBooks);
-        localStorage.setItem("myBorrowedBooks", JSON.stringify(demoBooks));
-      }
-    } catch (error) {
+// Load borrowed books from backend
+useEffect(() => {
+  fetch("http://localhost:8000/my-borrows?email=iftekharasif71@gmail.com")
+    .then((res) => res.json())
+    .then((data) => {
+      setBorrowedBooks(data);
+    })
+    .catch((error) => {
       console.error("Failed to load borrowed books:", error);
-      setBorrowedBooks(demoBooks);
-    } finally {
+    })
+    .finally(() => {
       setLoading(false);
+    });
+}, []);
+// Return Book
+const handleReturnBook = async (id: string) => {
+  const confirmReturn = window.confirm("Return this book?");
+
+  if (!confirmReturn) {
+    return;
+  }
+
+  const res = await fetch(
+    `http://localhost:8000/return/${id}`,
+    {
+      method: "PATCH",
     }
-  }, []);
+  );
 
-  // Return Book
-  const handleReturnBook = (id: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to return this book?"
+  const data = await res.json();
+
+  alert(data.message);
+
+  if (data.message === "Book Returned Successfully!") {
+    setBorrowedBooks(
+      borrowedBooks.map((book) => {
+        if (book._id === id) {
+          return { ...book, status: "Returned" };
+        }
+
+        return book;
+      })
     );
-
-    if (!confirmed) return;
-
-    const updatedBooks = borrowedBooks.map((book) =>
-      book._id === id ? { ...book, status: "Returned" as const } : book
-    );
-
-    setBorrowedBooks(updatedBooks);
-
-    // Save updated status so it remains after page refresh
-    localStorage.setItem("myBorrowedBooks", JSON.stringify(updatedBooks));
-  };
-
+  }
+};
   const activeBorrows = borrowedBooks.filter(
     (book) => book.status === "Borrowed"
   );

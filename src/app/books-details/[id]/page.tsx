@@ -3,6 +3,7 @@ export const instant = false;
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import BorrowButton from "@/components/BorrowButton";
 interface Book {
   _id: string;
   title: string;
@@ -31,12 +32,9 @@ export default async function BookDetailsPage({
   let book: Book;
 
   try {
-    const res = await fetch(
-      `http://localhost:8000/books/${id}`,
-      {
-        cache: "no-store",
-      }
-    );
+    const res = await fetch(`http://localhost:8000/books/${id}`, {
+      cache: "no-store",
+    });
 
     if (res.status === 404 || res.status === 400) {
       notFound();
@@ -57,10 +55,8 @@ export default async function BookDetailsPage({
   return (
     <main className="min-h-screen bg-[#FAF7F0] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-
         {/* Details Card */}
         <div className="grid overflow-hidden rounded-3xl border border-[#E8E1D5] bg-white shadow-sm md:grid-cols-2">
-
           {/* Book Image */}
           <div className="relative flex min-h-[350px] items-center justify-center bg-[#F5EFE3] p-8 sm:min-h-[500px]">
             {book.image ? (
@@ -82,7 +78,6 @@ export default async function BookDetailsPage({
 
           {/* Book Information */}
           <div className="flex flex-col justify-center p-6 sm:p-10">
-
             <span className="mb-5 w-fit rounded-full bg-[#F5EFE3] px-4 py-2 text-xs font-semibold text-[#172554]">
               {book.category}
             </span>
@@ -111,11 +106,8 @@ export default async function BookDetailsPage({
 
             {/* Copies Information */}
             <div className="mt-8 grid grid-cols-2 gap-4">
-
               <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">
-                  Total Copies
-                </p>
+                <p className="text-sm text-slate-500">Total Copies</p>
 
                 <p className="mt-2 text-2xl font-bold text-[#172554]">
                   {book.totalCopies ?? 0}
@@ -123,21 +115,16 @@ export default async function BookDetailsPage({
               </div>
 
               <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">
-                  Available Copies
-                </p>
+                <p className="text-sm text-slate-500">Available Copies</p>
 
                 <p
                   className={`mt-2 text-2xl font-bold ${
-                    availableCopies > 0
-                      ? "text-green-700"
-                      : "text-red-600"
+                    availableCopies > 0 ? "text-green-700" : "text-red-600"
                   }`}
                 >
                   {availableCopies}
                 </p>
               </div>
-
             </div>
 
             {/* Availability */}
@@ -156,41 +143,13 @@ export default async function BookDetailsPage({
             </div>
 
             {/* Added By */}
-            <div className="mt-8 border-t border-[#E8E1D5] pt-5">
-              <p className="text-xs text-slate-400">
-                Added By
-              </p>
-
-              <p className="mt-1 text-sm font-semibold text-[#172554]">
-                {book.username}
-              </p>
-
-              <p className="mt-1 text-sm text-slate-500">
-                {book.email}
-              </p>
-            </div>
-
-            {/* Action Buttons */}
+              {/* Action Buttons */}
 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
 
-  <Link
-    href={
-      availableCopies > 0
-        ? "/my-borrows"
-        : "#"
-    }
-    aria-disabled={availableCopies <= 0}
-    tabIndex={availableCopies <= 0 ? -1 : 0}
-    className={`flex-1 rounded-xl px-6 py-3.5 text-center text-sm font-semibold text-white transition ${
-      availableCopies > 0
-        ? "bg-[#172554] hover:bg-[#243B73]"
-        : "pointer-events-none cursor-not-allowed bg-slate-400"
-    }`}
-  >
-    {availableCopies > 0
-      ? "Borrow This Book"
-      : "Currently Unavailable"}
-  </Link>
+  <BorrowButton
+    bookId={book._id}
+    availableCopies={availableCopies}
+  />
 
   <Link
     href="/all-books"
@@ -200,8 +159,6 @@ export default async function BookDetailsPage({
   </Link>
 
 </div>
-           
-
           </div>
         </div>
       </div>
