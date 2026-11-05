@@ -1,7 +1,10 @@
+
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+
 import {
   Sheet,
   SheetContent,
@@ -20,6 +23,100 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const { data: session, isPending } = authClient.useSession();
+
+  const user = session?.user;
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    window.location.href = "/";
+  };
+
+  // User Avatar
+  const UserAvatar = ({ size = "h-10 w-10" }) => (
+    <div
+      className={`${size} flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#172554] font-bold text-white`}
+    >
+      {user?.image ? (
+        <img
+          src={user.image}
+          alt={user.name || "User"}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        user?.name?.charAt(0).toUpperCase() || "U"
+      )}
+    </div>
+  );
+
+  // User Dropdown
+  const UserDropdown = () => (
+    <details className="group relative">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-[#E8E1D5] bg-white/70 py-1 pl-1 pr-3 transition hover:border-[#C5A46D] hover:bg-[#172554]/5 [&::-webkit-details-marker]:hidden">
+        <UserAvatar size="h-9 w-9" />
+
+        <span className="max-w-[120px] truncate text-sm font-semibold text-[#172554]">
+          {user?.name || "User"}
+        </span>
+
+        <svg
+          className="h-4 w-4 text-[#172554] transition-transform group-open:rotate-180"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </summary>
+
+      <div className="absolute right-0 top-full z-[100] mt-3 w-56 overflow-hidden rounded-xl border border-[#E8E1D5] bg-[#FAF7F0] p-2 shadow-xl">
+        <div className="border-b border-[#E8E1D5] px-3 py-3">
+          <p className="truncate text-sm font-bold text-[#172554]">
+            {user?.name || "User"}
+          </p>
+          <p className="truncate text-xs text-slate-500">
+            {user?.email}
+          </p>
+        </div>
+
+        <Link
+          href="/profile"
+          className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[#334155] transition hover:bg-[#172554] hover:text-white"
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M5 21a7 7 0 0 1 14 0" />
+          </svg>
+          Profile
+        </Link>
+
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-100"
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="M10 17l5-5-5-5M15 12H3" />
+            <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+          </svg>
+          Logout
+        </button>
+      </div>
+    </details>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E8E1D5]/80 bg-[#FAF7F0]/95 shadow-sm backdrop-blur-xl">
       <nav className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -55,46 +152,54 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Desktop Auth Buttons */}
+        {/* Desktop Auth */}
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
-          <Link
-            href="/signin"
-            className="inline-flex items-center justify-center rounded-md border border-[#172554]/30 px-4 py-2 text-sm font-medium text-[#172554] transition hover:bg-[#F5EFE3]"
-          >
-            Sign In
-          </Link>
+          {!isPending && (
+            user ? (
+              <UserDropdown />
+            ) : (
+              <>
+                <Link
+                  href="/signin"
+                  className="inline-flex items-center justify-center rounded-md border border-[#172554]/30 px-4 py-2 text-sm font-medium text-[#172554] transition hover:bg-[#F5EFE3]"
+                >
+                  Sign In
+                </Link>
 
-          <Link
-            href="/signup"
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-[#172554] px-5 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#243B73] hover:shadow-md"
-          >
-            Sign Up
-            <span className="ml-2 text-[#C5A46D]">→</span>
-          </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#172554] px-5 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#243B73] hover:shadow-md"
+                >
+                  Sign Up
+                  <span className="ml-2 text-[#C5A46D]">→</span>
+                </Link>
+              </>
+            )
+          )}
         </div>
 
         {/* Mobile Navigation */}
         <div className="lg:hidden">
           <Sheet>
-    <SheetTrigger
-  type="button"
-  aria-label="Open navigation menu"
-  className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E8E1D5] bg-white/70 text-[#172554] transition hover:border-[#C5A46D] hover:bg-[#172554] hover:text-white"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="21"
-    height="21"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-</SheetTrigger>
+            <SheetTrigger
+              type="button"
+              aria-label="Open navigation menu"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E8E1D5] bg-white/70 text-[#172554] transition hover:border-[#C5A46D] hover:bg-[#172554] hover:text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </SheetTrigger>
 
             <SheetContent
               side="right"
@@ -131,32 +236,67 @@ export default function Navbar() {
                 ))}
               </div>
 
-              {/* Mobile Auth Buttons */}
-              <div className="mt-8 border-t border-[#E8E1D5] pt-6">
-                <p className="mb-4 px-1 text-[11px] font-bold uppercase tracking-[2px] text-[#C5A46D]">
-                  Get Started
-                </p>
+              {/* Mobile Account */}
+              {!isPending && (
+                <div className="mt-8 border-t border-[#E8E1D5] pt-6">
+                  <p className="mb-4 px-1 text-[11px] font-bold uppercase tracking-[2px] text-[#C5A46D]">
+                    {user ? "My Account" : "Get Started"}
+                  </p>
 
-                <div className="flex flex-col gap-3">
-                  <SheetClose asChild>
-                    <Link
-                      href="/signin"
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-[#172554]/30 font-semibold text-[#172554] transition hover:bg-[#172554] hover:text-white"
-                    >
-                      Sign In
-                    </Link>
-                  </SheetClose>
+                  {user ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3 rounded-xl border border-[#E8E1D5] bg-white/70 p-3">
+                        <UserAvatar />
 
-                  <SheetClose asChild>
-                    <Link
-                      href="/signup"
-                      className="flex h-11 w-full items-center justify-center rounded-lg bg-[#172554] font-semibold text-white transition hover:bg-[#243B73]"
-                    >
-                      Sign Up
-                    </Link>
-                  </SheetClose>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-[#172554]">
+                            {user.name}
+                          </p>
+                          <p className="truncate text-xs text-slate-500">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <SheetClose asChild>
+                        <Link
+                          href="/profile"
+                          className="flex h-11 items-center gap-3 rounded-lg border border-[#E8E1D5] px-4 font-semibold text-[#172554] transition hover:bg-[#172554] hover:text-white"
+                        >
+                          Profile
+                        </Link>
+                      </SheetClose>
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex h-11 w-full items-center justify-center rounded-lg bg-[#172554] font-semibold text-white transition hover:bg-[#243B73]"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <SheetClose asChild>
+                        <Link
+                          href="/signin"
+                          className="flex h-11 w-full items-center justify-center rounded-lg border border-[#172554]/30 font-semibold text-[#172554] transition hover:bg-[#172554] hover:text-white"
+                        >
+                          Sign In
+                        </Link>
+                      </SheetClose>
+
+                      <SheetClose asChild>
+                        <Link
+                          href="/signup"
+                          className="flex h-11 w-full items-center justify-center rounded-lg bg-[#172554] font-semibold text-white transition hover:bg-[#243B73]"
+                        >
+                          Sign Up
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               <div className="absolute bottom-6 left-6 text-xs text-slate-400">
                 © 2026 BookNook. All rights reserved.
@@ -164,7 +304,6 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
         </div>
-
       </nav>
     </header>
   );

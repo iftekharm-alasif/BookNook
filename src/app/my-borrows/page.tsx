@@ -1,12 +1,13 @@
 
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 type BorrowedBook = {
   _id: string;
+  bookId: string;
   title: string;
   author: string;
   category: string;
@@ -16,130 +17,101 @@ type BorrowedBook = {
   status: "Borrowed" | "Returned";
 };
 
-const demoBooks: BorrowedBook[] = [
-  {
-    _id: "1",
-    title: "All Systems Red",
-    author: "Martha Wells",
-    category: "Science Fiction",
-    image: "https://covers.openlibrary.org/b/isbn/9780765397539-L.jpg",
-    borrowDate: "2026-11-01",
-    returnDate: "2026-11-15",
-    status: "Borrowed",
-  },
-  {
-    _id: "2",
-    title: "Atomic Habits",
-    author: "James Clear",
-    category: "Self Help",
-    image: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg",
-    borrowDate: "2026-10-25",
-    returnDate: "2026-11-08",
-    status: "Borrowed",
-  },
-  {
-    _id: "3",
-    title: "The Psychology of Money",
-    author: "Morgan Housel",
-    category: "Finance",
-    image: "https://covers.openlibrary.org/b/isbn/9780857197689-L.jpg",
-    borrowDate: "2026-10-10",
-    returnDate: "2026-10-24",
-    status: "Returned",
-  },
-];
+export default function MyBorrowsPage() {
+  const { data: session, isPending } = authClient.useSession();
 
-const MyBorrowsPage = () => {
-  const [borrowedBooks, setBorrowedBooks] = useState<BorrowedBook[]>([]);
+  const [books, setBooks] = useState<BorrowedBook[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load saved borrow data from localStorage
-// Load borrowed books from backend
-useEffect(() => {
-  fetch("http://localhost:8000/my-borrows?email=iftekharasif71@gmail.com")
-    .then((res) => res.json())
-    .then((data) => {
-      setBorrowedBooks(data);
-    })
-    .catch((error) => {
-      console.error("Failed to load borrowed books:", error);
-    })
-    .finally(() => {
+  // Login করা user-এর email দিয়ে books load হবে
+  useEffect(() => {
+    const email = session?.user?.email;
+
+    if (isPending) return;
+
+    if (!email) {
       setLoading(false);
-    });
-}, []);
-// Return Book
-const handleReturnBook = async (id: string) => {
-  const confirmReturn = window.confirm("Return this book?");
-
-  if (!confirmReturn) {
-    return;
-  }
-
-  const res = await fetch(
-    `http://localhost:8000/return/${id}`,
-    {
-      method: "PATCH",
+      return;
     }
-  );
 
-  const data = await res.json();
-
-  alert(data.message);
-
-  if (data.message === "Book Returned Successfully!") {
-    setBorrowedBooks(
-      borrowedBooks.map((book) => {
-        if (book._id === id) {
-          return { ...book, status: "Returned" };
-        }
-
-        return book;
+    fetch(
+      `http://localhost:8000/my-borrows?email=${encodeURIComponent(email)}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setBooks(data);
       })
-    );
-  }
-};
-  const activeBorrows = borrowedBooks.filter(
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [session, isPending]);
+
+  // Book Return
+  const handleReturn = async (id: string) => {
+    const confirmReturn = window.confirm("Return this book?");
+
+    if (!confirmReturn) return;
+
+    try {
+      const res = await fetch(`http://localhost:8000/return/${id}`, {
+        method: "PATCH",
+      });
+
+      const data = await res.json();
+
+      alert(data.message);
+
+      if (res.ok) {
+        setBooks((previousBooks) =>
+          previousBooks.map((book) =>
+            book._id === id
+              ? { ...book, status: "Returned" }
+              : book
+          )
+        );
+      }
+    } catch (error) {
+      alert("Something went wrong!");
+    }
+  };
+
+  const activeBooks = books.filter(
     (book) => book.status === "Borrowed"
   );
 
-  const returnedBooks = borrowedBooks.filter(
+  const returnedBooks = books.filter(
     (book) => book.status === "Returned"
   );
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB");
+  };
 
-  // Reusable book card
-  const renderBookCard = (book: BorrowedBook) => (
+  // Book Card
+  const bookCard = (book: BorrowedBook) => (
     <div
       key={book._id}
-      className="flex flex-col gap-5 rounded-2xl border border-[#E8E1D5] bg-white p-4 shadow-sm transition hover:shadow-md sm:flex-row sm:p-5"
+      className="flex flex-col gap-5 rounded-2xl border border-[#E8E1D5] bg-white p-4 shadow-sm sm:flex-row"
     >
-      {/* Book Image */}
-      <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl bg-[#F5EFE3] sm:h-52 sm:w-36">
-        <Image
+      <div className="h-52 w-full shrink-0 overflow-hidden rounded-xl bg-[#F5EFE3] sm:w-36">
+        <img
           src={book.image}
           alt={book.title}
-          fill
-          sizes="(max-width: 640px) 100vw, 144px"
-          className="object-contain p-2"
+          className="h-full w-full object-contain p-2"
         />
       </div>
 
-      {/* Book Information */}
       <div className="flex flex-1 flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="rounded-full bg-[#F5EFE3] px-3 py-1 text-xs font-semibold text-[#172554]">
+        <div className="flex justify-between gap-2">
+          <span className="rounded-full bg-[#F5EFE3] px-3 py-1 text-xs text-[#172554]">
             {book.category}
           </span>
 
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`rounded-full px-3 py-1 text-xs ${
               book.status === "Borrowed"
                 ? "bg-amber-100 text-amber-700"
                 : "bg-green-100 text-green-700"
@@ -153,9 +125,10 @@ const handleReturnBook = async (id: string) => {
           {book.title}
         </h3>
 
-        <p className="mt-1 text-sm text-slate-500">By {book.author}</p>
+        <p className="mt-1 text-sm text-slate-500">
+          By {book.author}
+        </p>
 
-        {/* Dates */}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-lg bg-[#FAF7F0] p-3">
             <p className="text-xs text-slate-500">Borrowed Date</p>
@@ -172,25 +145,23 @@ const handleReturnBook = async (id: string) => {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-5">
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
           <Link
-            href={`/books-details/${book._id}`}
-            className="text-sm font-semibold text-[#172554] underline decoration-[#C5A46D] underline-offset-4 transition hover:text-[#C5A46D]"
+            href={`/books-details/${book.bookId}`}
+            className="text-sm font-semibold text-[#172554] underline decoration-[#C5A46D] underline-offset-4"
           >
             View Details →
           </Link>
 
           {book.status === "Borrowed" ? (
             <button
-              type="button"
-              onClick={() => handleReturnBook(book._id)}
-              className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#243B73]"
+              onClick={() => handleReturn(book._id)}
+              className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243B73]"
             >
               Return Book
             </button>
           ) : (
-            <span className="rounded-lg bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-700">
+            <span className="rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700">
               ✓ Returned
             </span>
           )}
@@ -199,12 +170,39 @@ const handleReturnBook = async (id: string) => {
     </div>
   );
 
+  // Loading
+  if (isPending || loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] py-20 text-center">
+        Loading borrowed books...
+      </div>
+    );
+  }
+
+  // Login না থাকলে
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] px-4 py-20 text-center">
+        <h2 className="text-2xl font-bold text-[#172554]">
+          Please Login First
+        </h2>
+
+        <Link
+          href="/sign-in"
+          className="mt-5 inline-block rounded-xl bg-[#172554] px-6 py-3 text-white"
+        >
+          Login
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#FAF7F0] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
+
         <div className="mb-10">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#C5A46D]">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-[#C5A46D]">
             Your Reading Activity
           </p>
 
@@ -212,8 +210,8 @@ const handleReturnBook = async (id: string) => {
             My Borrows
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-            Manage your borrowed books and keep track of your return history.
+          <p className="mt-3 text-sm text-slate-600">
+            Manage your borrowed books and return history.
           </p>
         </div>
 
@@ -222,14 +220,14 @@ const handleReturnBook = async (id: string) => {
           <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6">
             <p className="text-sm text-slate-500">Total Borrowed</p>
             <h2 className="mt-2 text-3xl font-bold text-[#172554]">
-              {borrowedBooks.length}
+              {books.length}
             </h2>
           </div>
 
           <div className="rounded-2xl border border-[#E8E1D5] bg-white p-6">
             <p className="text-sm text-slate-500">Currently Borrowed</p>
             <h2 className="mt-2 text-3xl font-bold text-[#C5A46D]">
-              {activeBorrows.length}
+              {activeBooks.length}
             </h2>
           </div>
 
@@ -241,98 +239,50 @@ const handleReturnBook = async (id: string) => {
           </div>
         </div>
 
-        {loading ? (
-          <div className="rounded-2xl border border-[#E8E1D5] bg-white py-16 text-center">
-            <p className="text-slate-500">Loading borrowed books...</p>
-          </div>
-        ) : (
-          <>
-            {/* Currently Borrowed Section */}
-            <section className="mb-14">
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-bold text-[#172554]">
-                    Currently Borrowed
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Books you currently have
-                  </p>
-                </div>
+        {/* Currently Borrowed */}
+        <section className="mb-14">
+          <h2 className="mb-6 text-2xl font-bold text-[#172554]">
+            Currently Borrowed ({activeBooks.length})
+          </h2>
 
-                <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700">
-                  {activeBorrows.length} Books
-                </span>
-              </div>
+          {activeBooks.length === 0 ? (
+            <p className="rounded-2xl bg-white p-10 text-center text-slate-500">
+              No Currently Borrowed Books
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {activeBooks.map(bookCard)}
+            </div>
+          )}
+        </section>
 
-              {activeBorrows.length === 0 ? (
-                <div className="rounded-2xl border border-[#E8E1D5] bg-white px-5 py-12 text-center">
-                  <p className="text-lg font-semibold text-[#172554]">
-                    No Currently Borrowed Books
-                  </p>
-                  <p className="mt-2 text-sm text-slate-500">
-                    You have returned all your borrowed books.
-                  </p>
-                  <Link
-                    href="/all-books"
-                    className="mt-5 inline-block rounded-xl bg-[#172554] px-6 py-3 text-sm font-semibold text-white hover:bg-[#243B73]"
-                  >
-                    Browse Books →
-                  </Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {activeBorrows.map(renderBookCard)}
-                </div>
-              )}
-            </section>
+        {/* Returned Books */}
+        <section>
+          <h2 className="mb-6 text-2xl font-bold text-[#172554]">
+            Returned Books ({returnedBooks.length})
+          </h2>
 
-            {/* Returned Books Section */}
-            <section>
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-bold text-[#172554]">
-                    Returned Books
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Your previously returned books
-                  </p>
-                </div>
+          {returnedBooks.length === 0 ? (
+            <p className="rounded-2xl bg-white p-10 text-center text-slate-500">
+              No Returned Books Yet
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {returnedBooks.map(bookCard)}
+            </div>
+          )}
+        </section>
 
-                <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-                  {returnedBooks.length} Books
-                </span>
-              </div>
-
-              {returnedBooks.length === 0 ? (
-                <div className="rounded-2xl border border-[#E8E1D5] bg-white px-5 py-12 text-center">
-                  <p className="text-lg font-semibold text-[#172554]">
-                    No Returned Books Yet
-                  </p>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Your returned books will appear here.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {returnedBooks.map(renderBookCard)}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-
-        {/* Browse Books */}
         <div className="mt-12 text-center">
           <Link
             href="/all-books"
-            className="inline-block rounded-xl bg-[#172554] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-[#243B73]"
+            className="inline-block rounded-xl bg-[#172554] px-7 py-3.5 text-sm font-semibold text-white hover:bg-[#243B73]"
           >
             Browse More Books →
           </Link>
         </div>
+
       </div>
     </main>
   );
-};
-
-export default MyBorrowsPage;
+}
