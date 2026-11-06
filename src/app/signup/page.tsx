@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -13,56 +12,70 @@ export default function SignUpPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Normal Sign Up
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    setLoading(true);
-    setErrorMessage("");
+  setLoading(true);
+  setErrorMessage("");
 
-    const formData = new FormData(e.currentTarget);
+  const formData = new FormData(e.currentTarget);
 
-    try {
-      const { data, error } = await authClient.signUp.email({
-        name: formData.get("name") as string,
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-      });
+  try {
+    const { data, error } = await authClient.signUp.email({
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    });
 
-      if (error) {
-        setErrorMessage(error.message || "Signup failed!");
-        return;
-      }
+    console.log("Signup Data:", data);
+    console.log("Signup Error:", error);
 
-      if (data) {
-        router.push("/");
-        router.refresh();
-      }
-    } catch {
-      setErrorMessage("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+    if (error) {
+      setErrorMessage(error.message || "Signup failed!");
+      return;
     }
-  };
 
-  // Google Sign Up
-  const handleGoogleSignUp = async () => {
-    setErrorMessage("");
-
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
-    } catch {
-      setErrorMessage("Google sign up failed. Please try again.");
+    if (data) {
+      router.push("/");
+      router.refresh();
     }
-  };
+  } catch (error) {
+    console.error("Signup Exception:", error);
 
+    setErrorMessage(
+      error instanceof Error ? error.message : "Signup failed!"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleGoogleSignUp = async () => {
+  setErrorMessage("");
+
+  try {
+    const result = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",
+    });
+
+    console.log("Google Login Result:", result);
+
+    if (result.error) {
+      console.error("Google Login Error:", result.error);
+      setErrorMessage(result.error.message || "Google login failed!");
+    }
+  } catch (error) {
+    console.error("Google Login Exception:", error);
+
+    setErrorMessage(
+      error instanceof Error ? error.message : "Google login failed!"
+    );
+  }
+};
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FAF7F0] px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-[#E8E1D5] bg-white p-8 shadow-lg sm:p-10">
-
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-[#172554]">
             Book<span className="text-[#C5A46D]">Nook</span>
@@ -148,21 +161,19 @@ export default function SignUpPage() {
           </button>
         </form>
 
-        
-<div className="my-6 flex items-center gap-4">
-  <div className="h-px flex-1 bg-[#E8E1D5]" />
-  <span className="text-xs text-slate-400">OR SIGN UP WITH</span>
-  <div className="h-px flex-1 bg-[#E8E1D5]" />
-</div>
+        <div className="my-6 flex items-center gap-4">
+          <div className="h-px flex-1 bg-[#E8E1D5]" />
+          <span className="text-xs text-slate-400">OR SIGN UP WITH</span>
+          <div className="h-px flex-1 bg-[#E8E1D5]" />
+        </div>
 
-<button
-  onClick={handleGoogleSignUp}
-  type="button"
-  className="w-full rounded-lg border border-[#E8E1D5] py-3 text-sm font-semibold text-slate-700 hover:bg-[#FAF7F0]"
->
-  Google
-</button>
-
+        <button
+          onClick={handleGoogleSignUp}
+          type="button"
+          className="w-full rounded-lg border border-[#E8E1D5] py-3 text-sm font-semibold text-slate-700 hover:bg-[#FAF7F0]"
+        >
+          Google
+        </button>
 
         <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
@@ -173,7 +184,6 @@ export default function SignUpPage() {
             Sign In
           </Link>
         </p>
-
       </div>
     </div>
   );
