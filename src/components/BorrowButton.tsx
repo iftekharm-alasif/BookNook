@@ -30,7 +30,7 @@ export default function BorrowButton({
           return;
         }
 
-        const res = await fetch("http://localhost:8000/my-borrows", {
+        const res = await fetch("https://book-nook-server-rosy.vercel.app/my-borrows", {
           headers: {
             Authorization: `Bearer ${data.token}`,
           },
@@ -76,13 +76,22 @@ export default function BorrowButton({
         throw new Error("Failed to get authentication token");
       }
 
+      const borrowDate = new Date();
+      const returnDate = new Date();
+      returnDate.setDate(returnDate.getDate() + 7);
+
       const res = await fetch(
-        `http://localhost:8000/borrow/${bookId}`,
+        `https://book-nook-server-rosy.vercel.app/borrow/${bookId}`,
         {
           method: "POST",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${data.token}`,
           },
+          body: JSON.stringify({
+            borrowDate: borrowDate.toISOString(),
+            returnDate: returnDate.toISOString(),
+          }),
         }
       );
 
