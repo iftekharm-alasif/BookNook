@@ -9,6 +9,11 @@ const db = client.db("booknook");
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
 
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://book-nook-peach.vercel.app",
+  ],
+
   database: mongodbAdapter(db, { client }),
 
   emailAndPassword: {
@@ -22,7 +27,5 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [
-    jwt(),
-  ],
+  plugins: [jwt()],
 });
