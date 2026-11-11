@@ -1,90 +1,84 @@
-# Wanderlust Backend API
+# 📚 BookNook – Online Library Management System
 
-A RESTful backend API for the Wanderlust travel application, built with **Node.js, Express.js, MongoDB, and JWT Authentication**.
+BookNook is a full-stack online library management platform where users can explore books, borrow their favorite books, manage their own book collections, and track borrowing history. It provides a simple and user-friendly experience for managing library activities.
 
-## 🚀 Technologies Used
+## 🌐 Live Website
 
+**Live Demo:** https://book-nook-peach.vercel.app
+
+## ✨ Key Features
+
+- **User Authentication:** Secure authentication with email/password and Google sign-in using Better Auth.
+- **Browse Books:** Explore all available books from the library.
+- **Search & Filter:** Find books by title and filter them by category.
+- **Book Details:** View detailed information about individual books.
+- **Add Books:** Authenticated users can add new books to the library.
+- **Manage Books:** Users can view, edit, and delete books they have added.
+- **Borrow Books:** Borrow available books from the library.
+- **Borrowing History:** View and manage personal borrowing records.
+- **Return Books:** Return borrowed books and update their availability.
+- **Responsive Design:** Optimized for desktop, tablet, and mobile devices.
+
+## 🛠️ Technologies Used
+
+### Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- Better Auth
+- Embla Carousel
+
+### Backend
 - Node.js
 - Express.js
 - MongoDB
-- MongoDB Node.js Driver
-- Better Auth
-- JWT Authentication (`jose`)
-- CORS
-- dotenv
+- JWT Authentication
+- Jose
 
-## ✨ Features
+### Deployment
+- Vercel
+- MongoDB Atlas
 
-- Add new travel destinations
-- Retrieve all destinations
-- Retrieve featured destinations
-- Get destination details by ID
-- Update destination information
-- Delete destinations
-- Create travel bookings
-- Retrieve user-specific bookings
-- Delete bookings
-- JWT-based protected API routes
+## 📂 Project Structure
 
-## 📁 API Endpoints
-
-### Destination APIs
-
-| Method | Endpoint | Authentication |
-|---|---|---|
-| GET | `/destinations` | Public |
-| GET | `/featured-destinations` | Public |
-| POST | `/add-destination` | JWT Required |
-| GET | `/destination/:id` | JWT Required |
-| PATCH | `/destination/:id` | JWT Required |
-| DELETE | `/destination/:id` | JWT Required |
-
-### Booking APIs
-
-| Method | Endpoint | Authentication |
-|---|---|---|
-| POST | `/booking` | Public |
-| GET | `/my-bookings/:email` | JWT Required |
-| DELETE | `/my-bookings/:id` | Public |
-
-### Server API
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | Check server status |
-
-## 🔐 JWT Authentication
-
-This project uses JWT authentication with Better Auth and the `jose` library.
-
-### How It Works
-
-1. The frontend obtains a JWT token from Better Auth.
-2. The frontend sends the token through the `Authorization` header.
-3. Express middleware extracts the token.
-4. `createRemoteJWKSet()` retrieves the public keys from Better Auth's JWKS endpoint.
-5. `jwtVerify()` verifies the token.
-6. If the token is valid, the request proceeds using `next()`.
-7. Otherwise, the request is rejected.
-
-### Authorization Header
-
-```http
-Authorization: Bearer YOUR_JWT_TOKEN
+```text
+BookNook/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── all-books/
+│   │   ├── add-books/
+│   │   ├── books-details/
+│   │   ├── edit-books/
+│   │   ├── my-books/
+│   │   ├── my-borrows/
+│   │   ├── profile/
+│   │   ├── signin/
+│   │   ├── signup/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   └── lib/
+├── package.json
+└── README.md
 ```
 
-## ⚙️ Installation
+## ⚙️ Installation & Setup
+
+Follow these steps to run the project locally.
 
 ### 1. Clone the Repository
 
 ```bash
-git clone YOUR_BACKEND_REPOSITORY_URL
+git clone https://github.com/iftekharm-alasif/BookNook.git
 ```
 
-### 2. Navigate to the Project Folder
+### 2. Navigate to the Project Directory
 
 ```bash
-cd your-project-folder
+cd BookNook
 ```
 
 ### 3. Install Dependencies
@@ -95,44 +89,62 @@ npm install
 
 ### 4. Configure Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env.local` file in the root directory and add the following variables:
 
 ```env
-MONGODB_URI=your_mongodb_connection_string
-CLIENT_URL=your_frontend_url
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+BETTER_AUTH_SECRET=your_secret_key
+BETTER_AUTH_URL=http://localhost:3000
+
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-### 5. Start the Development Server
+Add your actual credentials before running the application.
+
+### 5. Run the Development Server
 
 ```bash
-npm start
+npm run dev
 ```
 
-The server runs locally at:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```text
-http://localhost:8000
-```
+## 🔐 Authentication
 
-## 🗄️ Database Structure
+BookNook uses Better Auth for user authentication.
 
-**Database:** `wanderlust`
+- Email and password authentication.
+- Google authentication.
+- JWT-based API authentication.
+- Protected user-specific operations.
 
-Collections:
+## 📖 How It Works
 
-- `destination`
-- `bookings`
+1. Create an account or sign in.
+2. Explore the available books.
+3. View book details.
+4. Borrow books that are available.
+5. Manage your personal book collection.
+6. Track borrowed books and return them when finished.
 
-## 📦 Deployment
+## 🚀 Future Improvements
 
-The backend can be deployed using platforms such as Vercel.
+- Advanced book recommendation system.
+- Book reviews and ratings.
+- Improved library analytics.
+- Enhanced user dashboard.
+- Notifications for borrowing and returning books.
 
-Configure the required environment variables in the deployment platform before deploying.
-
-## 👨‍💻 Author
+## 👨‍💻 Developer
 
 **Iftekhar Mahamud Al Asif**
 
-## 📄 License
+- GitHub: [iftekharm-alasif](https://github.com/iftekharm-alasif)
 
-This project is created for educational and development purposes.
+---
+
+⭐ If you find this project interesting, consider giving it a star!
