@@ -1,9 +1,9 @@
-
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 type BorrowedBook = {
   _id: string;
@@ -23,6 +23,7 @@ export default function MyBorrowsPage() {
   const [books, setBooks] = useState<BorrowedBook[]>([]);
   const [loading, setLoading] = useState(false);
   const [returningId, setReturningId] = useState("");
+  const [selectedBookId, setSelectedBookId] = useState("");
 
   const email = session?.user?.email;
 
@@ -45,7 +46,7 @@ export default function MyBorrowsPage() {
             headers: {
               Authorization: `Bearer ${data.token}`,
             },
-          }
+          },
         );
 
         if (!res.ok) {
@@ -53,17 +54,23 @@ export default function MyBorrowsPage() {
         }
 
         const result = await res.json();
-        const sortedBooks = Array.isArray(result)
-  ? result.sort(
-      (a, b) =>
-        new Date(b.borrowDate).getTime() -
-        new Date(a.borrowDate).getTime()
-    )
-  : [];
 
-setBooks(sortedBooks);
+        const sortedBooks = Array.isArray(result)
+          ? result.sort(
+              (a, b) =>
+                new Date(b.borrowDate).getTime() -
+                new Date(a.borrowDate).getTime(),
+            )
+          : [];
+
+        setBooks(sortedBooks);
       } catch (error) {
         console.log("Load Books Error:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to load borrowed books!",
+        );
       } finally {
         setLoading(false);
       }
@@ -73,10 +80,6 @@ setBooks(sortedBooks);
   }, [email, isPending]);
 
   const handleReturn = async (id: string) => {
-    const confirmReturn = window.confirm("Return this book?");
-
-    if (!confirmReturn) return;
-
     try {
       setReturningId(id);
 
@@ -93,7 +96,7 @@ setBooks(sortedBooks);
           headers: {
             Authorization: `Bearer ${data.token}`,
           },
-        }
+        },
       );
 
       const result = await res.json();
@@ -104,33 +107,26 @@ setBooks(sortedBooks);
 
       setBooks((previousBooks) =>
         previousBooks.map((book) =>
-          book._id === id
-            ? { ...book, status: "Returned" }
-            : book
-        )
+          book._id === id ? { ...book, status: "Returned" } : book,
+        ),
       );
 
-      alert(result.message || "Book returned successfully!");
+      toast.success(result.message || "Book returned successfully!");
+      setSelectedBookId("");
     } catch (error) {
       console.log("Return Error:", error);
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong!"
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong!",
       );
     } finally {
       setReturningId("");
     }
   };
 
-  const activeBooks = books.filter(
-    (book) => book.status === "Borrowed"
-  );
+  const activeBooks = books.filter((book) => book.status === "Borrowed");
 
-  const returnedBooks = books.filter(
-    (book) => book.status === "Returned"
-  );
+  const returnedBooks = books.filter((book) => book.status === "Returned");
 
   const formatDate = (date: string) => {
     if (!date) return "Not available";
@@ -168,13 +164,9 @@ setBooks(sortedBooks);
           </span>
         </div>
 
-        <h3 className="mt-3 text-lg font-bold text-[#172554]">
-          {book.title}
-        </h3>
+        <h3 className="mt-3 text-lg font-bold text-[#172554]">{book.title}</h3>
 
-        <p className="mt-1 text-sm text-slate-500">
-          By {book.author}
-        </p>
+        <p className="mt-1 text-sm text-slate-500">By {book.author}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-lg bg-[#FAF7F0] p-3">
@@ -202,13 +194,11 @@ setBooks(sortedBooks);
 
           {book.status === "Borrowed" ? (
             <button
-              onClick={() => handleReturn(book._id)}
+              onClick={() => setSelectedBookId(book._id)}
               disabled={returningId === book._id}
               className="rounded-lg bg-[#172554] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {returningId === book._id
-                ? "Returning..."
-                : "Return Book"}
+              Return Book
             </button>
           ) : (
             <span className="rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700">
@@ -326,6 +316,48 @@ setBooks(sortedBooks);
           </Link>
         </div>
       </div>
+
+      {selectedBookId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => {
+            if (!returningId) setSelectedBookId("");
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-[#E8E1D5] bg-[#FAF7F0] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-2xl">
+              📚
+            </div>
+
+            <h2 className="text-xl font-bold text-[#172554]">Return Book?</h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Are you sure you want to return this book?
+            </p>
+
+            <div className="mt-7 flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedBookId("")}
+                disabled={!!returningId}
+                className="rounded-xl border border-[#E8E1D5] px-5 py-2.5 text-sm font-semibold text-[#172554] transition hover:bg-[#E8E1D5] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => handleReturn(selectedBookId)}
+                disabled={!!returningId}
+                className="rounded-xl bg-[#172554] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#243B73] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {returningId ? "Returning..." : "Confirm Return"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
