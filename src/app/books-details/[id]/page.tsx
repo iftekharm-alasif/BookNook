@@ -25,7 +25,9 @@ interface PageProps {
   }>;
 }
 
-const API_URL = "http://localhost:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://book-nook-server-rosy.vercel.app";
 
 export default async function BookDetailsPage({
   params,

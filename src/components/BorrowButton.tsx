@@ -31,7 +31,7 @@ export default function BorrowButton({
         }
 
         const res = await fetch(
-          `http://localhost:8000/my-borrows?email=${encodeURIComponent(session.user.email)}`,
+          `https://book-nook-server-rosy.vercel.app/my-borrows?email=${encodeURIComponent(session.user.email)}`,
           {
             headers: {
               Authorization: `Bearer ${data.token}`,
@@ -84,7 +84,7 @@ export default function BorrowButton({
       const returnDate = new Date();
       returnDate.setDate(returnDate.getDate() + 7);
 
-      const res = await fetch(`http://localhost:8000/borrow/${bookId}`, {
+      const res = await fetch(`https://book-nook-server-rosy.vercel.app/borrow/${bookId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

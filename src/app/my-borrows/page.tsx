@@ -40,7 +40,7 @@ export default function MyBorrowsPage() {
         }
 
         const res = await fetch(
-          "http://localhost:8000/my-borrows",
+          "https://book-nook-server-rosy.vercel.app/my-borrows",
           {
             headers: {
               Authorization: `Bearer ${data.token}`,
@@ -87,7 +87,7 @@ setBooks(sortedBooks);
       }
 
       const res = await fetch(
-        `http://localhost:8000/return/${id}`,
+        `https://book-nook-server-rosy.vercel.app/return/${id}`,
         {
           method: "PATCH",
           headers: {

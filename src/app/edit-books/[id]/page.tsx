@@ -56,7 +56,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     const fetchBook = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8000/books/${id}`
+          `https://book-nook-server-rosy.vercel.app/books/${id}`
         );
 
         if (!res.ok) {
@@ -152,7 +152,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       }
 
       const res = await fetch(
-        `http://localhost:8000/books/${id}`,
+        `https://book-nook-server-rosy.vercel.app/books/${id}`,
         {
           method: "PATCH",
           headers: {
