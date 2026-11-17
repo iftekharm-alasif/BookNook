@@ -3,6 +3,7 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const categories = [
   "Fiction",
@@ -35,10 +36,9 @@ export default function AddBookPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -51,14 +51,12 @@ export default function AddBookPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setLoading(true);
-    setMessage("");
-
     if (Number(form.availableCopies) > Number(form.totalCopies)) {
-      setMessage("Available Copies cannot be greater than Total Copies!");
-      setLoading(false);
+      toast.error("Available Copies cannot be greater than Total Copies!");
       return;
     }
+
+    setLoading(true);
 
     try {
       const { data, error } = await authClient.token();
@@ -71,19 +69,18 @@ export default function AddBookPage() {
         ...form,
         totalCopies: Number(form.totalCopies),
         availableCopies: Number(form.availableCopies),
+        username,
+        email: email.trim().toLowerCase(),
       };
 
-      const res = await fetch(
-        "https://book-nook-server-rosy.vercel.app/books",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${data.token}`,
-          },
-          body: JSON.stringify(bookData),
-        }
-      );
+      const res = await fetch("http://localhost:8000/books", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.token}`,
+        },
+        body: JSON.stringify(bookData),
+      });
 
       const result = await res.json();
 
@@ -91,7 +88,7 @@ export default function AddBookPage() {
         throw new Error(result.message || "Failed to add book!");
       }
 
-      setMessage("Book added successfully!");
+      toast.success("Book added successfully!");
 
       setForm({
         title: "",
@@ -103,10 +100,8 @@ export default function AddBookPage() {
         description: "",
       });
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong!"
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong!",
       );
     } finally {
       setLoading(false);
@@ -283,12 +278,6 @@ export default function AddBookPage() {
               className={`${inputClass} cursor-not-allowed bg-gray-100`}
             />
           </div>
-
-          {message && (
-            <p className="rounded-lg bg-[#FAF7F0] p-3 text-sm text-[#172554]">
-              {message}
-            </p>
-          )}
 
           <button
             type="submit"

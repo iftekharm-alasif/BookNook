@@ -1,5 +1,7 @@
+
 "use client";
 
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,6 +26,7 @@ export default function MyBooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   const email = session?.user?.email?.trim().toLowerCase();
 
@@ -34,12 +37,9 @@ export default function MyBooksPage() {
       setLoading(true);
 
       try {
-        const res = await fetch(
-          "https://book-nook-server-rosy.vercel.app/allbooks",
-          {
-            cache: "no-store",
-          },
-        );
+        const res = await fetch("http://localhost:8000/allbooks", {
+          cache: "no-store",
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch books");
@@ -54,6 +54,7 @@ export default function MyBooksPage() {
         setBooks(filteredBooks);
       } catch (error) {
         console.error("My Books Error:", error);
+        toast.error("Failed to load your books!");
       } finally {
         setLoading(false);
       }
@@ -63,12 +64,6 @@ export default function MyBooksPage() {
   }, [email, isPending]);
 
   const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this book?",
-    );
-
-    if (!confirmDelete) return;
-
     try {
       setDeletingId(id);
 
@@ -78,15 +73,12 @@ export default function MyBooksPage() {
         throw new Error("Authentication failed! Please login again.");
       }
 
-      const res = await fetch(
-        `https://book-nook-server-rosy.vercel.app/books/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${data.token}`,
-          },
+      const res = await fetch(`http://localhost:8000/books/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${data.token}`,
         },
-      );
+      });
 
       const result = await res.json();
 
@@ -98,11 +90,14 @@ export default function MyBooksPage() {
         previousBooks.filter((book) => book._id !== id),
       );
 
-      alert("Book deleted successfully!");
+      toast.success("Book deleted successfully!");
+      setSelectedBookId(null);
     } catch (error) {
       console.error("Delete Error:", error);
 
-      alert(error instanceof Error ? error.message : "Something went wrong!");
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong!",
+      );
     } finally {
       setDeletingId(null);
     }
@@ -251,7 +246,7 @@ export default function MyBooksPage() {
                     </Link>
 
                     <button
-                      onClick={() => handleDelete(book._id)}
+                      onClick={() => setSelectedBookId(book._id)}
                       disabled={deletingId === book._id}
                       className="col-span-2 rounded-xl border border-red-200 px-3 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -266,6 +261,51 @@ export default function MyBooksPage() {
           </div>
         )}
       </div>
+
+      {selectedBookId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => {
+            if (!deletingId) setSelectedBookId(null);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-[#E8E1D5] bg-[#FAF7F0] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-2xl">
+              🗑️
+            </div>
+
+            <h2 className="text-xl font-bold text-[#172554]">
+              Delete Book?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Are you sure you want to delete this book? This action cannot be
+              undone.
+            </p>
+
+            <div className="mt-7 flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedBookId(null)}
+                disabled={deletingId === selectedBookId}
+                className="rounded-xl border border-[#E8E1D5] px-5 py-2.5 text-sm font-semibold text-[#172554] transition hover:bg-[#E8E1D5] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => handleDelete(selectedBookId)}
+                disabled={deletingId === selectedBookId}
+                className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deletingId === selectedBookId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

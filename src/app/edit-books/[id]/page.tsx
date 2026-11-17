@@ -6,6 +6,8 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+
 
 interface EditBookPageProps {
   params: Promise<{ id: string }>;
@@ -54,7 +56,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     const fetchBook = async () => {
       try {
         const res = await fetch(
-          `https://book-nook-server-rosy.vercel.app/books/${id}`
+          `http://localhost:8000/books/${id}`
         );
 
         if (!res.ok) {
@@ -69,7 +71,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           book.email?.trim().toLowerCase() !==
           email.trim().toLowerCase()
         ) {
-          alert("You cannot edit this book!");
+          toast.success("You cannot edit this book!");
           router.push("/my-books");
           return;
         }
@@ -118,7 +120,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     e.preventDefault();
 
     if (!email) {
-      alert("Please login first!");
+      toast.error("Please login first!");
       return;
     }
 
@@ -131,12 +133,12 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       totalCopies < 0 ||
       availableCopies < 0
     ) {
-      alert("Please enter valid copy numbers!");
+      toast.error("Please enter valid copy numbers!");
       return;
     }
 
     if (availableCopies > totalCopies) {
-      alert("Available Copies cannot be greater than Total Copies!");
+      toast.error("Available Copies cannot be greater than Total Copies!");
       return;
     }
 
@@ -150,9 +152,9 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       }
 
       const res = await fetch(
-        `https://book-nook-server-rosy.vercel.app/books/${id}`,
+        `http://localhost:8000/books/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${data.token}`,
@@ -171,7 +173,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         throw new Error(result.message || "Update failed");
       }
 
-      alert("Book updated successfully!");
+      toast.success("Book updated successfully!");
       router.push("/my-books");
       router.refresh();
     } catch (error) {

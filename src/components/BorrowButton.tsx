@@ -1,6 +1,6 @@
-
 "use client";
 
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -30,21 +30,25 @@ export default function BorrowButton({
           return;
         }
 
-        const res = await fetch("https://book-nook-server-rosy.vercel.app/my-borrows", {
-          headers: {
-            Authorization: `Bearer ${data.token}`,
+        const res = await fetch(
+          `http://localhost:8000/my-borrows?email=${encodeURIComponent(session.user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
           },
-        });
+        );
 
         if (!res.ok) {
+          const errorData = await res.text();
+          console.error("My Borrows API Error:", res.status, errorData);
           throw new Error("Failed to fetch borrow status");
         }
-
         const borrows = await res.json();
 
         const alreadyBorrowed = borrows.some(
           (borrow: { bookId: string; status: string }) =>
-            borrow.bookId === bookId && borrow.status === "Borrowed"
+            borrow.bookId === bookId && borrow.status === "Borrowed",
         );
 
         setIsBorrowed(alreadyBorrowed);
@@ -80,20 +84,17 @@ export default function BorrowButton({
       const returnDate = new Date();
       returnDate.setDate(returnDate.getDate() + 7);
 
-      const res = await fetch(
-        `https://book-nook-server-rosy.vercel.app/borrow/${bookId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${data.token}`,
-          },
-          body: JSON.stringify({
-            borrowDate: borrowDate.toISOString(),
-            returnDate: returnDate.toISOString(),
-          }),
-        }
-      );
+      const res = await fetch(`http://localhost:8000/borrow/${bookId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.token}`,
+        },
+        body: JSON.stringify({
+          borrowDate: borrowDate.toISOString(),
+          returnDate: returnDate.toISOString(),
+        }),
+      });
 
       const result = await res.json();
 
@@ -104,17 +105,15 @@ export default function BorrowButton({
         throw new Error(result.message || "Failed to borrow book");
       }
 
-      alert(result.message || "Book Borrowed Successfully!");
+      toast.success(result.message || "Book Borrowed Successfully!");
 
       setIsBorrowed(true);
       router.refresh();
     } catch (error) {
       console.error("Borrow Error:", error);
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong!"
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong!",
       );
     } finally {
       setLoading(false);
@@ -127,10 +126,7 @@ export default function BorrowButton({
 
   if (isBorrowed) {
     return (
-      <button
-        disabled
-        className="rounded-lg bg-gray-400 px-5 py-2 text-white"
-      >
+      <button disabled className="rounded-lg bg-gray-400 px-5 py-2 text-white">
         Already Borrowed
       </button>
     );

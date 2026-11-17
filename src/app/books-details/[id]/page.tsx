@@ -14,6 +14,7 @@ interface Book {
   description: string;
   username: string;
   email: string;
+  addedDate?: string;
   totalCopies?: number;
   availableCopies?: number;
 }
@@ -24,7 +25,7 @@ interface PageProps {
   }>;
 }
 
-const API_URL = "https://book-nook-server-rosy.vercel.app";
+const API_URL = "http://localhost:8000";
 
 export default async function BookDetailsPage({
   params,
@@ -102,31 +103,32 @@ export default async function BookDetailsPage({
               </p>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">
-                  Total Copies
-                </p>
-                <p className="mt-2 text-2xl font-bold text-[#172554]">
-                  {book.totalCopies ?? 0}
-                </p>
-              </div>
+<div className="mt-8 grid grid-cols-2 gap-4">
+  <div className="rounded-xl bg-[#F5EFE3] p-4">
+    <p className="text-sm text-slate-500">Total Copies</p>
+    <p className="mt-2 text-2xl font-bold text-[#172554]">
+      {book.totalCopies ?? 0}
+    </p>
+  </div>
 
-              <div className="rounded-xl bg-[#F5EFE3] p-4">
-                <p className="text-sm text-slate-500">
-                  Available Copies
-                </p>
-                <p
-                  className={`mt-2 text-2xl font-bold ${
-                    availableCopies > 0
-                      ? "text-green-700"
-                      : "text-red-600"
-                  }`}
-                >
-                  {availableCopies}
-                </p>
-              </div>
-            </div>
+  <div className="rounded-xl bg-[#F5EFE3] p-4">
+    <p className="text-sm text-slate-500">Available Copies</p>
+    <p
+      className={`mt-2 text-2xl font-bold ${
+        availableCopies > 0 ? "text-green-700" : "text-red-600"
+      }`}
+    >
+      {availableCopies}
+    </p>
+  </div>
+
+  <div className="col-span-2 rounded-xl bg-[#F5EFE3] p-4">
+    <p className="text-sm text-slate-500">Added Date</p>
+    <p className="mt-2 font-bold text-[#172554]">
+      {book.addedDate || "Not Available"}
+    </p>
+  </div>
+</div>
 
             <div className="mt-6">
               {availableCopies > 0 ? (

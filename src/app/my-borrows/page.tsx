@@ -53,7 +53,15 @@ export default function MyBorrowsPage() {
         }
 
         const result = await res.json();
-        setBooks(Array.isArray(result) ? result : []);
+        const sortedBooks = Array.isArray(result)
+  ? result.sort(
+      (a, b) =>
+        new Date(b.borrowDate).getTime() -
+        new Date(a.borrowDate).getTime()
+    )
+  : [];
+
+setBooks(sortedBooks);
       } catch (error) {
         console.log("Load Books Error:", error);
       } finally {

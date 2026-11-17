@@ -50,7 +50,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/add-book"
+                  href="/add-books"
                   className="transition hover:text-[#C5A46D]"
                 >
                   Add Book
@@ -88,7 +88,7 @@ const Footer = () => {
                   href="mailto:hello@booknook.com"
                   className="transition hover:text-[#C5A46D]"
                 >
-                  hello@booknook.com
+                  iftekharm.alasif@gmail.com
                 </a>
               </li>
 
@@ -98,7 +98,7 @@ const Footer = () => {
                   href="tel:+8801234567890"
                   className="transition hover:text-[#C5A46D]"
                 >
-                  +880 1234-567890
+                  +8801 76305 8003
                 </a>
               </li>
 
