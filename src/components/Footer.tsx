@@ -123,7 +123,7 @@ const Footer = () => {
 
             <div className="flex gap-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/iftekhar.m.alAsif"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
@@ -133,17 +133,17 @@ const Footer = () => {
               </a>
 
               <a
-                href="https://instagram.com"
+                href="https://github.com/iftekharm-alasif"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-500 transition hover:border-[#C5A46D] hover:bg-[#C5A46D] hover:text-[#172554]"
               >
-                ig
+                gh
               </a>
 
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/iftekhar-m-al-asif/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"

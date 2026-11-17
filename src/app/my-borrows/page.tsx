@@ -13,7 +13,7 @@ type BorrowedBook = {
   category: string;
   image: string;
   borrowDate: string;
-  returnDate: string;
+  returnedDate?: string;
   status: "Borrowed" | "Returned";
 };
 
@@ -107,7 +107,13 @@ export default function MyBorrowsPage() {
 
       setBooks((previousBooks) =>
         previousBooks.map((book) =>
-          book._id === id ? { ...book, status: "Returned" } : book,
+          book._id === id
+            ? {
+                ...book,
+                status: "Returned",
+                returnedDate: result.returnedDate,
+              }
+            : book,
         ),
       );
 
@@ -176,12 +182,14 @@ export default function MyBorrowsPage() {
             </p>
           </div>
 
-          <div className="rounded-lg bg-[#FAF7F0] p-3">
-            <p className="text-xs text-slate-500">Return Date</p>
-            <p className="mt-1 text-sm font-semibold text-[#172554]">
-              {formatDate(book.returnDate)}
-            </p>
-          </div>
+          {book.status === "Returned" && (
+            <div className="rounded-lg bg-[#FAF7F0] p-3">
+              <p className="text-xs text-slate-500">Returned Date</p>
+              <p className="mt-1 text-sm font-semibold text-green-700">
+                {formatDate(book.returnedDate || "")}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">

@@ -18,6 +18,7 @@ interface Book {
   email: string;
   totalCopies?: number;
   availableCopies?: number;
+   addedDate?: string;
 }
 
 export default function MyBooksPage() {
@@ -47,11 +48,21 @@ export default function MyBooksPage() {
 
         const data: Book[] = await res.json();
 
-        const filteredBooks = data.filter(
-          (book) => book.email?.trim().toLowerCase() === email,
-        );
+const filteredBooks = data
+  .filter((book) => book.email?.trim().toLowerCase() === email)
+  .sort((a, b) => {
+    const dateA = a.addedDate
+      ? new Date(a.addedDate).getTime()
+      : parseInt(a._id.substring(0, 8), 16) * 1000;
 
-        setBooks(filteredBooks);
+    const dateB = b.addedDate
+      ? new Date(b.addedDate).getTime()
+      : parseInt(b._id.substring(0, 8), 16) * 1000;
+
+    return dateB - dateA;
+  });
+
+setBooks(filteredBooks);
       } catch (error) {
         console.error("My Books Error:", error);
         toast.error("Failed to load your books!");
